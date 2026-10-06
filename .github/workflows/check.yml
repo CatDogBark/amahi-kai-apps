@@ -1,0 +1,34 @@
+# Runs Amahi-kai's own checks on the catalog (the root helper's --check-catalog, what a NAS runs
+# before using a manifest), and checks that logos linked from this repo exist.
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: CatDogBark/Amahi-kai
+          path: amahi-kai
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      - name: The manifests, as a NAS checks them
+        run: ruby --disable-gems amahi-kai/libexec/amahi-helper --check-catalog apps
+      - name: Logos linked from this repo exist
+        run: |
+          prefix='https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/'
+          missing=0
+          for logo in $(grep -h "^logo: ${prefix}" apps/*.yml | sed "s|^logo: ${prefix}||"); do
+            [ -f "$logo" ] || { echo "missing: $logo"; missing=1; }
+          done
+          exit $missing
