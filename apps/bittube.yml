@@ -3,7 +3,7 @@ description: Your YouTube channels and streaming services in one place, with You
 category: media
 logo: https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/bittube.svg
 releases: https://github.com/CatDogBark/bitTube/releases/tag/v{version}
-image: ghcr.io/catdogbark/bittube:0.1.11@sha256:4e1c3f1b48cf05e7b43435cca81343ea3405c32093277d6a42169022677f9d6c
+image: ghcr.io/catdogbark/bittube:0.1.12@sha256:d9f640835dd2fb0b18d2050ca2f5598f3f8852d0610e582073027b7ed9b5fc6d
 run_as: app
 web_port: 8484
 memory: 1g
