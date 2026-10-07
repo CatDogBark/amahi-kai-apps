@@ -48,6 +48,7 @@ environment:
 | `image` | `name:tag@sha256:digest`: the exact image, pinned, on Docker Hub or `ghcr.io`, public |
 | `run_as` | `app`: the container runs as the app's own user (`--user`). `image`: it starts as root and switches to the app's user itself (linuxserver.io images, given `PUID`/`PGID`) |
 | `web_port` | The host port of the app's web page, one of `ports`'s `host`: where Open goes, and what's announced on the LAN (optional) |
+| `web_tls` | `true` if that page is HTTPS, with the app's own certificate: Open and the LAN announcement use `https` (optional; format 2) |
 | `memory` | Memory limit, like `512m` or `2g` (default `1g`) |
 | `ports` | `host` (1024–65535, not the server's own, and no other app's here), `container`, `protocol` (`tcp` or `udp`, default `tcp`), and `label` for the Apps page (the web port is labelled "web"). `host` is the port the app gets when it's free; if not, it gets the next free one at install, and keeps it |
 | `folders` | `name` (a folder under `/var/lib/amahi-kai/apps/<id>/`, owned by the app's user) and `path` in the container; `backup: false` leaves it out of the copy taken before an update (caches, downloads) |
@@ -89,7 +90,8 @@ digest into `apps/gitea.yml`. Read the notes, then open a pull request here.
 
 ## Formats
 
-A NAS knows the catalog formats up to the one its Amahi-kai was built with (format 1 today). A
+A NAS knows the catalog formats up to the one its Amahi-kai was built with (format 2 today:
+format 2 adds `web_tls`). A
 manifest that needs a newer one (`requires: 2`) is listed on older NASes with "Needs a newer
 Amahi-kai: run System Update first" instead of Install or Update. Raise `requires` whenever a
 manifest uses a field older Amahi-kai versions don't know.
