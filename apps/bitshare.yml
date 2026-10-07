@@ -1,0 +1,19 @@
+name: bitShare
+description: Keeps folders in sync across your computers through the NAS, with every version kept and conflict copies instead of overwrites.
+category: files
+logo: https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/bitshare.svg
+image: ghcr.io/catdogbark/bitshare:0.1.0@sha256:ce273d016e87f384d92095f332452888c1a70d453ad6cf003197ca9af2312742
+run_as: app
+memory: 1g
+# No web page yet: computers connect to its port with the bitshare client, which pins the
+# server's own certificate (its fingerprint is in the container's log: docker logs
+# amahi-bitshare). Sign in as admin, with the password below.
+ports:
+  - { host: 8443, container: 8443, label: sync }
+# The chunk store (the files' content) only ever grows, so the copy taken before an update can
+# leave it out.
+folders:
+  - { name: data, path: /data }
+  - { name: chunks, path: /chunks, backup: false }
+secrets:
+  - { env: BITSHARE_ADMIN_PASSWORD, label: Password for bitShare's admin user }
