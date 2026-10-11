@@ -2,9 +2,10 @@ name: bitShare
 description: Keeps folders in sync across your computers through the NAS, with every version kept and conflict copies instead of overwrites.
 category: files
 logo: https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/bitshare-2.svg
-image: ghcr.io/catdogbark/bitshare:0.2.0@sha256:e62cd3746be508af4333bf0fffaa4c2fd87cd8ea9343d72520ea0a9f6a1d71c1
+image: ghcr.io/catdogbark/bitshare:0.3.0@sha256:14b8b4c55ac6f27bac3bb165cac695b9d258cd2bd0c40587efefce96de75005b
 run_as: app
-# Its web page (files, history, trash, settings) and the bitshare clients share one port, over
+# Its web page (files, history, trash, settings, and Connect a computer, which offers the Linux
+# client for download) and the bitshare clients share one port, over
 # HTTPS with the server's own certificate: the browser warns about it once. Computers pin it at
 # enrollment (its fingerprint is in the container's log, and on the web page's Settings). Sign
 # in as admin, with the password below.
