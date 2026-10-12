@@ -11,14 +11,15 @@ run_as: app
 # in as admin, with the password below.
 web_port: 8443
 web_tls: true
-requires: 2
+requires: 3
 memory: 1g
 ports:
   - { host: 8443, container: 8443 }
-# The chunk store (the files' content) only ever grows, so the copy taken before an update can
-# leave it out.
+# Its database and its chunk store (the files' content) go on a ZFS pool chosen at install, in a
+# dataset of bitShare's own, so one snapshot always has the two together; it can't be installed
+# without a pool.
 folders:
-  - { name: data, path: /data }
-  - { name: chunks, path: /chunks, backup: false }
+  - { name: data, path: /data, kind: dataset }
+  - { name: chunks, path: /chunks, kind: dataset }
 secrets:
   - { env: BITSHARE_ADMIN_PASSWORD, label: Password for bitShare's admin user }
