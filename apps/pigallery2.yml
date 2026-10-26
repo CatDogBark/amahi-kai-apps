@@ -18,7 +18,7 @@ folders:
   - { name: db, path: /app/data/db }
   - { name: thumbnails, path: /app/data/tmp, backup: false }
 secrets:
-  - { env: PIGALLERY_ADMIN_PASSWORD, label: Password of the gallery's admin user }
+  - { env: PIGALLERY_ADMIN_PASSWORD, label: Sign in as admin with this password }
 environment:
   TZ: "{{timezone}}"
   default-Media-folder: /shares
