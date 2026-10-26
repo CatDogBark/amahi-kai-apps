@@ -1,5 +1,6 @@
 name: PiGallery2
 description: Your photos and home videos as a gallery, folder by folder, as they are on the NAS.
+sign_in: "Sign in as admin with the password Amahi-kai made for it."
 category: media
 logo: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/pigallery2.png
 releases: https://github.com/bpatrik/pigallery2/releases/tag/{version}

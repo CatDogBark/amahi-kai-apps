@@ -24,6 +24,11 @@ jobs:
           ruby-version: '3.2'
       - name: The manifests, as a NAS checks them
         run: ruby --disable-gems amahi-kai/libexec/amahi-helper --check-catalog apps
+      - name: Every app says how to sign in the first time
+        run: |
+          missing=0
+          for f in apps/*.yml; do grep -q '^sign_in: ' "$f" || { echo "$f has no sign_in"; missing=1; }; done
+          exit $missing
       - name: Logos linked from this repo exist
         run: |
           prefix='https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/'
