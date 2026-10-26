@@ -1,5 +1,6 @@
 name: bitShare
 description: Keeps folders in sync across your computers through the NAS, with every version kept and conflict copies instead of overwrites.
+sign_in: "The first time, your browser warns about bitShare's own certificate: accept it once, then sign in as admin with the password Amahi-kai made for it."
 category: files
 logo: https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/bitshare-2.svg
 image: ghcr.io/catdogbark/bitshare:0.3.0@sha256:14b8b4c55ac6f27bac3bb165cac695b9d258cd2bd0c40587efefce96de75005b

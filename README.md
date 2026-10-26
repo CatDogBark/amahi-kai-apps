@@ -43,6 +43,7 @@ environment:
 | Field | Meaning |
 | --- | --- |
 | `name`, `description`, `category` | What the Apps page shows, one line each |
+| `sign_in` | How to sign in the first time, one sentence, shown under the installed app on the Apps page and when its install finishes: who to sign in as and with what ("the password Amahi-kai made for it", for a generated one), or what its first page asks for. Every app here has one (this repo's CI checks); older Amahi-kai versions don't show it |
 | `logo` | An `https` link (optional). Logos of this repo's own go in `logos/`, linked through jsDelivr: `https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/<file>`. A changed logo gets a new file name (`bitshare-2.svg`): browsers keep a logo for a week |
 | `releases` | The release notes for a version, `{version}` being the tag's leading number (`2.5.5` for `2.5.5-rootless`): the Apps page's What's new link (optional, `https`) |
 | `image` | `name:tag@sha256:digest`: the exact image, pinned, on Docker Hub or `ghcr.io`, public |
