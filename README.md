@@ -44,7 +44,7 @@ environment:
 | --- | --- |
 | `name`, `description`, `category` | What the Apps page shows, one line each |
 | `sign_in` | How to sign in the first time, one sentence, shown under the installed app on the Apps page and when its install finishes: who to sign in as and with what ("the password Amahi-kai made for it", for a generated one), or what its first page asks for. Every app here has one (this repo's CI checks); older Amahi-kai versions don't show it |
-| `logo` | An `https` link (optional). Logos of this repo's own go in `logos/`, linked through jsDelivr: `https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/<file>`. A changed logo gets a new file name (`bitshare-2.svg`): browsers keep a logo for a week |
+| `logo` | An `https` link (optional). Logos of this repo's own go in `logos/`, linked through jsDelivr: `https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/<file>`. A changed logo gets a new file name (`bitshare-2.svg`): browsers keep a logo for a week. It must stand out on Amahi-kai's dark cards: at least half of it at 3:1 contrast with the card, which this repo's CI measures (`script/check-logos apps/*.yml`). For a logo made for light pages, use its icon set's light version (dashboard-icons names some `-light`, others `-dark`) |
 | `releases` | The release notes for a version, `{version}` being the tag's leading number (`2.5.5` for `2.5.5-rootless`): the Apps page's What's new link (optional, `https`) |
 | `image` | `name:tag@sha256:digest`: the exact image, pinned, on Docker Hub or `ghcr.io`, public |
 | `run_as` | `app`: the container runs as the app's own user (`--user`). `image`: it starts as root and switches to the app's user itself (linuxserver.io images, given `PUID`/`PGID`) |
@@ -67,7 +67,8 @@ environment:
    ruby --disable-gems ../Amahi-kai/libexec/amahi-helper --check-catalog apps
    ```
 
-3. Open a pull request. Its CI runs that same check, and checks the logos linked from here.
+3. Open a pull request. Its CI runs that same check, checks the logos linked from here, and that every logo
+   stands out on the dark cards.
    What a reviewer looks for besides: the image comes from the app's own project (or a
    well-known packager), it's pinned to a release, not `latest`, it runs as an ordinary user
    where it can, and it was tried the way a server runs it (see the guide).

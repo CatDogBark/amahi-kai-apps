@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Checks that every app's logo stands out on Amahi-kai's dark cards.
+
+Each logo is drawn over the card's colour, at twice the Apps page's size (its 32 pixels on a
+HiDPI screen). At least half of its ink, weighted by opacity, must have 3:1 contrast with the
+card there, WCAG's bar for graphics. A dark logo made for light pages fails; its icon set's
+light version usually passes.
+
+    script/check-logos apps/*.yml
+
+Needs ImageMagick (magick or convert), and rsvg-convert (librsvg2-bin) for SVG logos.
+"""
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib.request
+
+CARD = (9, 16, 17)  # sRGB of the card behind a logo, as it shows on screen (glass over the water)
+MIN_VISIBLE = 0.5   # share of a logo's ink that must stand out
+SIZE = 64
+# Logos of this repo's own are read from the checkout: a pull request's new logo isn't on main yet.
+OWN = 'https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/'
+
+
+def linear(channel):
+    channel /= 255
+    return channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
+
+
+def luminance(rgb):
+    red, green, blue = (linear(c) for c in rgb)
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+
+
+def contrast(first, second):
+    lighter, darker = max(first, second), min(first, second)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def pixels(path):
+    """The logo at SIZE pixels a side at most, as bytes R, G, B, A."""
+    with open(path, 'rb') as file:
+        svg = file.read(512).lstrip().startswith((b'<svg', b'<?xml'))
+    if svg and shutil.which('rsvg-convert'):
+        png = path + '.png'
+        subprocess.run(['rsvg-convert', '-w', str(SIZE), '-h', str(SIZE), '-a', '-o', png, path], check=True)
+        path = png
+    magick = shutil.which('magick') or shutil.which('convert')
+    if not magick:
+        sys.exit('script/check-logos needs ImageMagick')
+    return subprocess.run([magick, '-background', 'none', path, '-resize', f'{SIZE}x{SIZE}', '-depth', '8', 'rgba:-'],
+                          capture_output=True, check=True).stdout
+
+
+def visible_share(raw):
+    """The share of the logo's ink, drawn over the card, with at least 3:1 contrast with it."""
+    card = luminance(CARD)
+    ink = seen = 0.0
+    for i in range(0, len(raw), 4):
+        *rgb, alpha = raw[i:i + 4]
+        if alpha == 0:
+            continue
+        opacity = alpha / 255
+        shown = [opacity * c + (1 - opacity) * b for c, b in zip(rgb, CARD)]
+        ink += opacity
+        if contrast(luminance(shown), card) >= 3:
+            seen += opacity
+    return seen / ink if ink else 0.0
+
+
+def fetch(url, path):
+    if url.startswith(OWN):
+        shutil.copyfile(url[len(OWN):], path)
+        return
+    with urllib.request.urlopen(url, timeout=30) as reply, open(path, 'wb') as out:
+        out.write(reply.read())
+
+
+def main(manifests):
+    failed = []
+    with tempfile.TemporaryDirectory() as folder:
+        for manifest in manifests:
+            with open(manifest, encoding='utf-8') as file:
+                match = re.search(r'^logo:\s*["\']?([^"\'\s]+)', file.read(), re.M)
+            if not match:
+                continue
+            path = os.path.join(folder, os.path.basename(manifest) + '.logo')
+            fetch(match.group(1), path)
+            share = visible_share(pixels(path))
+            print(f"{'ok  ' if share >= MIN_VISIBLE else 'FAIL'} {manifest}: {share:.0%} of its logo stands out on the card")
+            if share < MIN_VISIBLE:
+                failed.append(manifest)
+    if failed:
+        print(f"\n{len(failed)} logo(s) don't stand out on Amahi-kai's dark cards. Use the icon set's light version: "
+              "dashboard-icons has some as -light, others as -dark.")
+    return 1 if failed else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

@@ -1,5 +1,6 @@
 # Runs Amahi-kai's own checks on the catalog (the root helper's --check-catalog, what a NAS runs
-# before using a manifest), and checks that logos linked from this repo exist.
+# before using a manifest), checks that logos linked from this repo exist, and that every logo
+# stands out on Amahi-kai's dark cards (script/check-logos).
 name: Check
 
 on:
@@ -37,3 +38,8 @@ jobs:
             [ -f "$logo" ] || { echo "missing: $logo"; missing=1; }
           done
           exit $missing
+      - name: Logos stand out on Amahi-kai's dark cards
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends imagemagick librsvg2-bin > /dev/null
+          script/check-logos apps/*.yml
