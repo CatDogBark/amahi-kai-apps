@@ -58,9 +58,33 @@ environment:
 | `writes_shares` | `true` if the app may be given shares to write into (default `false`: shares are read only, at `/shares/<name>`). Shares Greyhole pools are always read only |
 | `requires` | The catalog format it needs (default 1); see Formats |
 
+## Ports
+
+The host ports the apps ask for, so a new one can take a port that's free. No two apps may ask for
+the same port, and this table must be the manifests' ports: this repo's CI checks both with
+`script/ports --check README.md`, and `script/ports` prints the table. A NAS still gives an app the
+next free port when its own is taken there (by something else on that NAS), and the app keeps it.
+Ports under 1024, and 3000 (Amahi-kai's own page), are refused by the manifests' check.
+
+<!-- ports -->
+| Port | App | For |
+| --- | --- | --- |
+| 2222 | Gitea | Git over SSH |
+| 3001 | Uptime Kuma | web page |
+| 3300 | Gitea | web page |
+| 8096 | Jellyfin | web page |
+| 8098 | PiGallery2 | web page |
+| 8443 | bitShare | web page (HTTPS) |
+| 8484 | bitTube | web page |
+| 8880 | Vaultwarden | web page |
+| 9091 | Transmission | web page |
+| 51413 | Transmission | peers (TCP and UDP) |
+<!-- /ports -->
+
 ## Adding an app
 
-1. Add `apps/<id>.yml` (and its logo in `logos/`, if it's this repo's own).
+1. Add `apps/<id>.yml` (and its logo in `logos/`, if it's this repo's own), with host ports no
+   other app asks for, and add them to the Ports table (`script/ports` prints it).
 2. Check it as a server will, from a checkout of Amahi-kai beside this one:
 
    ```bash

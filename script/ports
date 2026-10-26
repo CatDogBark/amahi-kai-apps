@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# The host ports the catalog's apps ask for, by number: the README's Ports table.
+#
+#   script/ports                     prints the table
+#   script/ports --check README.md   fails if two apps ask for the same port, or if the README's
+#                                    table (between <!-- ports --> and <!-- /ports -->) isn't this one
+#
+# A NAS gives an app the next free port when its own is taken there, but two apps asking for the
+# same one is a mistake: one of them is never where its catalog entry says.
+
+require 'yaml'
+
+Port = Struct.new(:host, :protocols, :app, :what)
+
+def ports(dir = File.expand_path('../apps', __dir__))
+  Dir[File.join(dir, '*.yml')].sort.flat_map do |path|
+    manifest = YAML.safe_load(File.read(path))
+    Array(manifest['ports']).group_by { |port| port['host'] }.map do |host, group|
+      protocols = group.map { |port| (port['protocol'] || 'tcp').upcase }.uniq.sort # TCP, then UDP
+      what = if host == manifest['web_port']
+               manifest['web_tls'] ? 'web page (HTTPS)' : 'web page'
+             else
+               group.filter_map { |port| port['label'] }.first || 'other'
+             end
+      Port.new(host, protocols, manifest['name'], what)
+    end
+  end.sort_by { |port| [port.host, port.app] }
+end
+
+# "51413/tcp: Transmission and Other" for each port two apps ask for.
+def clashes(list)
+  list.flat_map { |port| port.protocols.map { |protocol| ["#{port.host}/#{protocol.downcase}", port.app] } }
+      .group_by(&:first)
+      .filter_map { |port, uses| "#{port}: #{uses.map(&:last).uniq.join(' and ')}" if uses.map(&:last).uniq.size > 1 }
+end
+
+def table(list)
+  rows = list.map do |port|
+    kind = port.protocols == ['TCP'] ? '' : " (#{port.protocols.join(' and ')})"
+    "| #{port.host} | #{port.app} | #{port.what}#{kind} |"
+  end
+  ['| Port | App | For |', '| --- | --- | --- |', *rows].join("\n")
+end
+
+list = ports
+case ARGV
+in []
+  puts table(list)
+in ['--check', readme]
+  problems = clashes(list).map { |clash| "Two apps ask for host port #{clash}" }
+  listed = File.read(readme)[%r{<!-- ports -->\n(.*?)\n<!-- /ports -->}m, 1]
+  if listed.nil?
+    problems << "#{readme} has no table between <!-- ports --> and <!-- /ports -->"
+  elsif listed.strip != table(list)
+    problems << "#{readme}'s Ports table isn't the manifests' ports. It should be (script/ports prints it):\n\n#{table(list)}"
+  end
+  problems.each { |problem| warn problem }
+  exit(problems.empty? ? 0 : 1)
+else
+  abort 'usage: script/ports [--check README.md]'
+end

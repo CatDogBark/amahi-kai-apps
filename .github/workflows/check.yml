@@ -1,6 +1,7 @@
 # Runs Amahi-kai's own checks on the catalog (the root helper's --check-catalog, what a NAS runs
-# before using a manifest), checks that logos linked from this repo exist, and that every logo
-# stands out on Amahi-kai's dark cards (script/check-logos).
+# before using a manifest), that no two apps ask for the same port and the README lists them
+# (script/ports), that logos linked from this repo exist, and that every logo stands out on
+# Amahi-kai's dark cards (script/check-logos).
 name: Check
 
 on:
@@ -38,6 +39,8 @@ jobs:
             [ -f "$logo" ] || { echo "missing: $logo"; missing=1; }
           done
           exit $missing
+      - name: No two apps ask for the same port, and the README's Ports table lists them
+        run: ruby script/ports --check README.md
       - name: Logos stand out on Amahi-kai's dark cards
         run: |
           sudo apt-get update -qq
