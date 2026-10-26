@@ -22,4 +22,4 @@ folders:
   - { name: data, path: /data, kind: dataset }
   - { name: chunks, path: /chunks, kind: dataset }
 secrets:
-  - { env: BITSHARE_ADMIN_PASSWORD, label: Password for bitShare's admin user }
+  - { env: BITSHARE_ADMIN_PASSWORD, label: Sign in as admin with this password }
