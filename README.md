@@ -71,6 +71,7 @@ Ports under 1024, and 3000 (Amahi-kai's own page), are refused by the manifests'
 <!-- ports -->
 | Port | App | For |
 | --- | --- | --- |
+| 1984 | bitStream | web page |
 | 2222 | Gitea | Git over SSH |
 | 3001 | Uptime Kuma | web page |
 | 3300 | Gitea | web page |
@@ -78,6 +79,7 @@ Ports under 1024, and 3000 (Amahi-kai's own page), are refused by the manifests'
 | 8098 | PiGallery2 | web page |
 | 8443 | bitShare | web page (HTTPS) |
 | 8484 | bitTube | web page |
+| 8554 | bitStream | RTSP |
 | 8880 | Vaultwarden | web page |
 | 9091 | Transmission | web page |
 | 51413 | Transmission | peers (TCP and UDP) |
