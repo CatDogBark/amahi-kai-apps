@@ -50,11 +50,12 @@ environment:
 | `run_as` | `app`: the container runs as the app's own user (`--user`). `image`: it starts as root and switches to the app's user itself (linuxserver.io images, given `PUID`/`PGID`) |
 | `web_port` | The host port of the app's web page, one of `ports`'s `host`: where Open goes, and what's announced on the LAN (optional) |
 | `web_tls` | `true` if that page is HTTPS, with the app's own certificate: Open and the LAN announcement use `https` (optional; format 2) |
+| `access` | `tailscale` for an app reached only from devices on the NAS's Tailscale network, over HTTPS: its ports are published on the NAS itself only, and its `web_port` (plain HTTP on TCP, not `web_tls`) is served on the tailnet with Tailscale's certificate, at `https://<the NAS's name on the tailnet>:<its port>`. It installs once the NAS's Tailscale is connected with MagicDNS and HTTPS Certificates on, and isn't announced on the LAN. Default `lan` (optional; format 5) |
 | `memory` | Memory limit, like `512m` or `2g` (default `1g`) |
 | `ports` | `host` (1024–65535, not the server's own, and no other app's here), `container`, `protocol` (`tcp` or `udp`, default `tcp`), and `label` for the Apps page (the web port is labelled "web"). `host` is the port the app gets when it's free; if not, it gets the next free one at install, and keeps it |
 | `folders` | `name` (a folder under `/var/lib/amahi-kai/apps/<id>/`, owned by the app's user) and `path` in the container; `backup: false` leaves it out of the copy taken before an update (caches, downloads). `kind: dataset` puts it on a ZFS pool instead, in a dataset of the app's own (`<pool>/apps/<id>`) on the pool chosen at install, snapshotted before an update: the data that grows. It's `required` (the app can't be installed without a pool) unless `required: false`, when the app must run without it. The default, `kind: state`, is the system disk: what the app needs to run (format 3) |
-| `environment` | Plain settings, one line each; `{{uid}}`, `{{gid}}` and `{{timezone}}` are filled in at install. Names are like `TZ` (capitals, digits, `_`), or, from format 4, as the app spells them (letters of either case, digits, `_` and `-`, starting with a letter: PiGallery2's `Media-folder`) |
-| `secrets` | `env` and `label`: generated at install, passed as that environment variable, shown to admins. From format 4 a setting can also hold one inside its value as `{{secret:<env>}}` (a password inside a JSON list of users, say); secrets are letters and digits, so they fit inside quotes |
+| `environment` | Plain settings, one line each; `{{uid}}`, `{{gid}}` and `{{timezone}}` are filled in at install. Names are like `TZ` (capitals, digits, `_`), or, from format 4, as the app spells them (letters of either case, digits, `_` and `-`, starting with a letter: PiGallery2's `Media-folder`). From format 5, `{{tailscale_url}}` is the address of an app with `access: tailscale` (Vaultwarden's `DOMAIN`) |
+| `secrets` | `env` and `label`: generated at install, passed as that environment variable, shown to admins. From format 4 a setting can also hold one inside its value as `{{secret:<env>}}` (a password inside a JSON list of users, say); secrets are letters and digits, so they fit inside quotes. From format 5, `hash: argon2` gives the container an Argon2id hash of the secret (PHC form) while admins are shown the secret itself (Vaultwarden's `ADMIN_TOKEN`) |
 | `writes_shares` | `true` if the app may be given shares to write into (default `false`: shares are read only, at `/shares/<name>`). Shares Greyhole pools are always read only |
 | `requires` | The catalog format it needs (default 1); see Formats |
 
@@ -118,7 +119,8 @@ digest into `apps/gitea.yml`. Read the notes, then open a pull request here.
 
 A NAS knows the catalog formats up to the one its Amahi-kai was built with (format 3 in
 Amahi-kai 1.0: format 2 adds `web_tls`, format 3 folders' `kind` and `required`; format 4, in the
-release after 1.0.3, environment names as the app spells them and secrets inside values). A
+release after 1.0.3, environment names as the app spells them and secrets inside values; format 5,
+in the release after 1.2.0, `access: tailscale`, `{{tailscale_url}}` and a secret's `hash`). A
 manifest that needs a newer one (`requires: 3`) is listed on older NASes with "Needs a newer
 Amahi-kai: run System Update first" instead of Install or Update. Raise `requires` whenever a
 manifest uses a field older Amahi-kai versions don't know.
