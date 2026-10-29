@@ -96,7 +96,7 @@ Ports under 1024, and 3000 (Amahi-kai's own page), are refused by the manifests'
    ruby --disable-gems ../Amahi-kai/libexec/amahi-helper --check-catalog apps
    ```
 
-3. Open a pull request. Its CI runs that same check, checks the logos linked from here, and that every logo
+3. Open a pull request (pull requests come from collaborators: see [CONTRIBUTING.md](CONTRIBUTING.md)). Its CI runs that same check, checks the logos linked from here, and that every logo
    stands out on the dark cards.
    What a reviewer looks for besides: the image comes from the app's own project (or a
    well-known packager), it's pinned to a release, not `latest`, it runs as an ordinary user
