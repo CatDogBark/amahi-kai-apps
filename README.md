@@ -58,6 +58,7 @@ environment:
 | `secrets` | `env` and `label`: generated at install, passed as that environment variable, shown to admins. From format 4 a setting can also hold one inside its value as `{{secret:<env>}}` (a password inside a JSON list of users, say); secrets are letters and digits, so they fit inside quotes. From format 5, `hash: argon2` gives the container an Argon2id hash of the secret (PHC form) while admins are shown the secret itself (Vaultwarden's `ADMIN_TOKEN`) |
 | `shares` | `true` if the app works with files in shares (a media server, a photo gallery): Install asks which shares to give it, read only, at `/shares/<name>`. An app without it (or `writes_shares`) installs without being asked and gets none; older Amahi-kai versions ask for every app (optional) |
 | `writes_shares` | `true` if the app may be given shares to write into (default `false`: shares are read only, at `/shares/<name>`); it says `shares` too. Shares Greyhole pools are always read only |
+| `ping` | The path of the image's `ping` when it's marked to need raw sockets (`setcap cap_net_raw`), which apps don't get, so it doesn't run (optional). Amahi-kai mounts a copy of that file without the mark in its place, which pings the way Docker lets any container; older Amahi-kai ignores it |
 | `requires` | The catalog format it needs (default 1); see Formats |
 
 ## Ports
