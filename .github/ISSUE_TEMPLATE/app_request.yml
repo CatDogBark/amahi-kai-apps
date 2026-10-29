@@ -1,0 +1,20 @@
+name: Request an app
+description: An app you'd like Amahi-kai to install.
+labels: [enhancement]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: The app
+      description: Its name and its project's page.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What you'd use it for
+  - type: input
+    id: image
+    attributes:
+      label: Its container image
+      description: The image its project publishes (Docker Hub or ghcr.io), if you know it.
