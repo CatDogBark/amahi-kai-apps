@@ -47,7 +47,7 @@ environment:
 | --- | --- |
 | `name`, `description`, `category` | What the Apps page shows, one line each |
 | `sign_in` | How to sign in the first time, one sentence, shown under the installed app on the Apps page and when its install finishes: who to sign in as and with what ("the password Amahi-kai made for it", for a generated one), or what its first page asks for. Every app here has one (this repo's CI checks); older Amahi-kai versions don't show it |
-| `logo` | An `https` link (optional). Logos of this repo's own go in `logos/`, linked through jsDelivr: `https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/<file>`. A changed logo gets a new file name (`bitshare-2.svg`): browsers keep a logo for a week. It must stand out on Amahi-kai's dark cards: at least half of it at 3:1 contrast with the card, which this repo's CI measures (`script/check-logos apps/*.yml`). For a logo made for light pages, use its icon set's light version (dashboard-icons names some `-light`, others `-dark`) |
+| `logo` | An `https` link (optional). Logos of this repo's own go in `logos/`, linked through jsDelivr: `https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/<file>`. A changed logo gets a new file name (`<id>-2.svg`): browsers keep a logo for a week. It must stand out on Amahi-kai's dark cards: at least half of it at 3:1 contrast with the card, which this repo's CI measures (`script/check-logos apps/*.yml`). For a logo made for light pages, use its icon set's light version (dashboard-icons names some `-light`, others `-dark`) |
 | `releases` | The release notes for a version, `{version}` being the tag's leading number (`2.5.5` for `2.5.5-rootless`): the Apps page's What's new link (optional, `https`) |
 | `image` | `name:tag@sha256:digest`: the exact image, pinned, on Docker Hub or `ghcr.io`, public |
 | `run_as` | `app`: the container runs as the app's own user (`--user`). `image`: it starts as root and switches to the app's user itself (linuxserver.io images, given `PUID`/`PGID`) |
@@ -77,15 +77,11 @@ Ports under 1024, and 3000 (Amahi-kai's own page), are refused by the manifests'
 <!-- ports -->
 | Port | App | For |
 | --- | --- | --- |
-| 1984 | bitStream | web page |
 | 2222 | Gitea | Git over SSH |
 | 3001 | Uptime Kuma | web page |
 | 3300 | Gitea | web page |
 | 8096 | Jellyfin | web page |
 | 8098 | PiGallery2 | web page |
-| 8443 | bitShare | web page (HTTPS) |
-| 8484 | bitTube | web page |
-| 8554 | bitStream | RTSP |
 | 8880 | Vaultwarden | web page |
 | 9091 | Transmission | web page |
 | 51413 | Transmission | peers (TCP and UDP) |
