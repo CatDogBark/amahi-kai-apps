@@ -1,0 +1,49 @@
+# Checks a signed version of the catalog the way a NAS will before it takes one (README.md, Signed
+# versions): a tag catalog-N, annotated and naming itself, signed with one of Amahi-kai's release
+# keys (its config/allowed_signers on main), on main, higher than every other version, and every
+# manifest in it passing the NAS's checks.
+name: Signed version
+
+on:
+  push:
+    tags: ['catalog-*']
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: CatDogBark/Amahi-kai
+          ref: main
+          path: amahi-kai
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      - name: A version a NAS takes, signed with a release key
+        run: |
+          [[ "$TAG" =~ ^catalog-[1-9][0-9]{0,5}$ ]] || { echo "$TAG isn't catalog-N: a NAS passes over it"; exit 1; }
+          # The checkout can leave a plain copy of the tag: fetch the tag itself
+          git fetch --quiet --force origin "refs/tags/$TAG:refs/tags/$TAG"
+          [ "$(git cat-file -t "refs/tags/$TAG")" = tag ] || { echo "$TAG is a plain tag, with no signature"; exit 1; }
+          name=$(git cat-file tag "refs/tags/$TAG" | sed -n 's/^tag //p' | head -n 1)
+          [ "$name" = "$TAG" ] || { echo "$TAG calls itself $name inside"; exit 1; }
+          git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=amahi-kai/config/allowed_signers -c gpg.minTrustLevel=fully verify-tag "$TAG"
+      - name: On main, and the highest version
+        run: |
+          git merge-base --is-ancestor "$TAG^{commit}" origin/main || { echo "$TAG isn't on main"; exit 1; }
+          number=${TAG#catalog-}
+          highest=$(git tag -l 'catalog-*' | sed -n 's/^catalog-\([1-9][0-9]*\)$/\1/p' | sort -n | tail -n 1)
+          [ "$number" -ge "$highest" ] || { echo "$TAG is lower than catalog-$highest: a NAS that has that refuses it"; exit 1; }
+      - name: Every manifest in it, as a NAS checks them
+        run: |
+          git checkout --quiet "$TAG"
+          ruby --disable-gems amahi-kai/libexec/amahi-helper --check-catalog apps

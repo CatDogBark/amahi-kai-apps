@@ -1,9 +1,12 @@
 # Amahi-kai apps
 
 The app catalog for [Amahi-kai](https://github.com/CatDogBark/Amahi-kai): one manifest per app in
-`apps/<id>.yml`. Every Amahi-kai NAS fetches this repo's `main` branch every 6 hours (and when its
-Apps page's **Check now** is pressed), so a new app, or a new version of one, reaches every NAS
-without an Amahi-kai update. Nothing updates on its own: each app's row then offers **Update**.
+`apps/<id>.yml`. Every Amahi-kai NAS fetches this repo's newest **signed version** every 6 hours
+(and when its Apps page's **Check now** is pressed), so a new app, or a new version of one, reaches
+every NAS without an Amahi-kai update. Nothing updates on its own: each app's row then offers
+**Update**. A signed version is a `catalog-N` tag signed with one of Amahi-kai's release keys
+([Signed versions](#signed-versions)); a NAS (Amahi-kai 1.8.0 and later) never fetches `main`
+itself.
 
 The NAS's root helper checks every manifest before using it, the same way it checks an install,
 and skips the ones that don't pass (the Apps page names them). This repo's CI runs those same
@@ -104,7 +107,8 @@ Ports under 1024, and 3000 (Amahi-kai's own page), are refused by the manifests'
    well-known packager), it's pinned to a release, not `latest`, it runs as an ordinary user
    where it can, and it was tried the way a server runs it (see the guide).
 
-Within 6 hours of the merge every server lists it (or at once, with Check now on its Apps page).
+Once it's merged and in a [signed version](#signed-versions), every server lists it within 6 hours
+(or at once, with Check now on its Apps page).
 
 ## Updating an app
 
@@ -119,7 +123,44 @@ script/app-versions --catalog ../amahi-kai-apps/apps --update gitea
 ```
 
 The first lists newer versions with their release notes; the second writes the newest tag and
-digest into `apps/gitea.yml`. Read the notes, then open a pull request here.
+digest into `apps/gitea.yml`. Read the notes, then open a pull request here. Servers offer the
+update once it's in a [signed version](#signed-versions).
+
+## Signed versions
+
+Whoever could change this repo's `main` would otherwise decide which image every NAS installs. So
+a NAS takes only a **`catalog-N` tag** (N counts up from 1, no leading zero) signed with one of
+Amahi-kai's release keys (the keys in its
+[`config/allowed_signers`](https://github.com/CatDogBark/Amahi-kai/blob/main/config/allowed_signers),
+the same ones that sign its releases). It takes the highest N, and never one lower than the
+version it has. A tag that isn't signed with a release key, is a plain tag, or calls itself by
+another name inside is refused, and the NAS keeps the catalog it has. Its Apps page names the
+version it has and the key that signed it.
+
+After merging into `main`, the maintainer signs the next version on the merge commit, with a
+release key (it asks for the key's passphrase), checks it, and pushes it:
+
+```bash
+git fetch origin
+```
+
+```bash
+git -c gpg.format=ssh -c user.signingkey=$HOME/.ssh/<release key> tag -s catalog-<N> origin/main -m "catalog-<N> — what changed"
+```
+
+```bash
+git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=<Amahi-kai's config/allowed_signers> -c gpg.minTrustLevel=fully tag -v catalog-<N>
+```
+
+```bash
+git push origin catalog-<N>
+```
+
+The **Signed version** workflow then checks the pushed tag as a NAS will: its name, its signature,
+that it's on `main`, that it's the highest, and every manifest in it. Never reuse or delete a
+version: a NAS that has `catalog-7` refuses `catalog-6`. A version of Amahi-kai that needs a new
+manifest field ships after the version of the catalog that uses it (`requires` keeps older ones
+from misreading it).
 
 ## Formats
 

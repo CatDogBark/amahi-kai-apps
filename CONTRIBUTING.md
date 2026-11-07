@@ -5,6 +5,7 @@ Anyone can ask for an app with the **Request an app** issue form, and report a p
 problem goes privately, as [SECURITY.md](SECURITY.md) says.
 
 Pull requests come from collaborators: open an issue about the app first, and the maintainer
-invites contributors. Only the maintainer merges into `main`, which every Amahi-kai NAS fetches.
+invites contributors. Only the maintainer merges into `main`, and signs the versions of it every
+Amahi-kai NAS fetches ([Signed versions](README.md#signed-versions)).
 [Making an app](README.md#making-an-app) and [Adding an app](README.md#adding-an-app) say what a
 manifest needs and how it's checked.
