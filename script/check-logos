@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Checks that every app's logo stands out on Amahi-kai's dark cards.
+"""Checks that every app has its logo in logos/ and that it stands out on Amahi-kai's dark cards.
+
+An app's logo is logos/<id>.png (or .jpg, .webp, .svg), beside apps/: one for each app.
 
 Each logo is drawn over the card's colour, at twice the Apps page's size (its 32 pixels on a
 HiDPI screen). At least half of its ink, weighted by opacity, must have 3:1 contrast with the
@@ -11,18 +13,15 @@ light version usually passes.
 Needs ImageMagick (magick or convert), and rsvg-convert (librsvg2-bin) for SVG logos.
 """
 import os
-import re
 import shutil
 import subprocess
 import sys
 import tempfile
-import urllib.request
 
 CARD = (9, 16, 17)  # sRGB of the card behind a logo, as it shows on screen (glass over the water)
 MIN_VISIBLE = 0.5   # share of a logo's ink that must stand out
 SIZE = 64
-# Logos of this repo's own are read from the checkout: a pull request's new logo isn't on main yet.
-OWN = 'https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/'
+LOGO_TYPES = ('png', 'jpg', 'webp', 'svg')
 
 
 def linear(channel):
@@ -71,31 +70,33 @@ def visible_share(raw):
     return seen / ink if ink else 0.0
 
 
-def fetch(url, path):
-    if url.startswith(OWN):
-        shutil.copyfile(url[len(OWN):], path)
-        return
-    with urllib.request.urlopen(url, timeout=30) as reply, open(path, 'wb') as out:
-        out.write(reply.read())
+def logo_files(manifest):
+    """The app's logos in logos/ (logos/<id>.<type>, beside apps/): one, for a good app."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(manifest)))
+    app = os.path.splitext(os.path.basename(manifest))[0]
+    paths = (os.path.join(root, 'logos', f'{app}.{kind}') for kind in LOGO_TYPES)
+    return [path for path in paths if os.path.isfile(path)]
 
 
 def main(manifests):
     failed = []
     with tempfile.TemporaryDirectory() as folder:
         for manifest in manifests:
-            with open(manifest, encoding='utf-8') as file:
-                match = re.search(r'^logo:\s*["\']?([^"\'\s]+)', file.read(), re.M)
-            if not match:
+            found = logo_files(manifest)
+            if len(found) != 1:
+                print(f"FAIL {manifest}: needs one logo in logos/ (<id>.png, .jpg, .webp or .svg), has {len(found)}")
+                failed.append(manifest)
                 continue
-            path = os.path.join(folder, os.path.basename(manifest) + '.logo')
-            fetch(match.group(1), path)
+            # A copy, so an SVG's rendering is written beside it there, not in the checkout
+            path = os.path.join(folder, os.path.basename(found[0]))
+            shutil.copyfile(found[0], path)
             share = visible_share(pixels(path))
             print(f"{'ok  ' if share >= MIN_VISIBLE else 'FAIL'} {manifest}: {share:.0%} of its logo stands out on the card")
             if share < MIN_VISIBLE:
                 failed.append(manifest)
     if failed:
-        print(f"\n{len(failed)} logo(s) don't stand out on Amahi-kai's dark cards. Use the icon set's light version: "
-              "dashboard-icons has some as -light, others as -dark.")
+        print(f"\n{len(failed)} app(s) without a logo, or with one that doesn't stand out on Amahi-kai's dark cards. "
+              "For the second, use the icon set's light version: dashboard-icons has some as -light, others as -dark.")
     return 1 if failed else 0
 
 

@@ -1,9 +1,9 @@
 # Amahi-kai apps
 
 The app catalog for [Amahi-kai](https://github.com/CatDogBark/Amahi-kai): one manifest per app in
-`apps/<id>.yml`. Every Amahi-kai NAS fetches this repo's newest **signed version** every 6 hours
-(and when its Apps page's **Check now** is pressed), so a new app, or a new version of one, reaches
-every NAS without an Amahi-kai update. Nothing updates on its own: each app's row then offers
+`apps/<id>.yml`, and its logo in `logos/`. Every Amahi-kai NAS fetches this repo's newest **signed
+version** every 6 hours (and when its Apps page's **Check now** is pressed), so a new app, or a new
+version of one, reaches every NAS without an Amahi-kai update. Nothing updates on its own: each app's row then offers
 **Update**. A signed version is a `catalog-N` tag signed with one of Amahi-kai's release keys
 ([Signed versions](#signed-versions)); a NAS (Amahi-kai 1.8.0 and later) never fetches `main`
 itself.
@@ -47,9 +47,9 @@ environment:
 | --- | --- |
 | `name`, `description`, `category` | What the Apps page shows, one line each |
 | `sign_in` | How to sign in the first time, one sentence, shown under the installed app on the Apps page and when its install finishes: who to sign in as and with what ("the password Amahi-kai made for it", for a generated one), or what its first page asks for. Every app here has one (this repo's CI checks); older Amahi-kai versions don't show it |
-| `logo` | An `https` link (optional). Logos of this repo's own go in `logos/`, linked through jsDelivr: `https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/logos/<file>`. A changed logo gets a new file name (`<id>-2.svg`): browsers keep a logo for a week. It must stand out on Amahi-kai's dark cards: at least half of it at 3:1 contrast with the card, which this repo's CI measures (`script/check-logos apps/*.yml`). For a logo made for light pages, use its icon set's light version (dashboard-icons names some `-light`, others `-dark`) |
+| `logo` | An `https` link, for Amahi-kai before 1.8.5 (optional). From 1.8.5 a NAS shows the app's logo from **`logos/<id>.png`** (or `.jpg`, `.webp`, `.svg`; 256 KB at most), which comes with the signed version: it never loads a logo from a link. Every app has one (this repo's CI checks). It must stand out on Amahi-kai's dark cards: at least half of it at 3:1 contrast with the card, which this repo's CI measures (`script/check-logos apps/*.yml`). For a logo made for light pages, use its icon set's light version (dashboard-icons names some `-light`, others `-dark`) |
 | `releases` | The release notes for a version, `{version}` being the tag's leading number (`2.5.5` for `2.5.5-rootless`): the Apps page's What's new link (optional, `https`) |
-| `image` | `name:tag@sha256:digest`: the exact image, pinned, on Docker Hub or `ghcr.io`, public |
+| `image` | `name:tag@sha256:digest`: the image, pinned, on Docker Hub or `ghcr.io`, public. It's the version a new install starts from; Amahi-kai 1.8.5 and later also offer newer releases of the same image, a tag of the same shape (`1.27.3-rootless` finds `28.3.0-rootless`, not `nightly-rootless`), and newer builds of the one an app runs ([Updating an app](#updating-an-app)) |
 | `run_as` | `app`: the container runs as the app's own user (`--user`). `image`: it starts as root and switches to the app's user itself (linuxserver.io images, given `PUID`/`PGID`) |
 | `web_port` | The host port of the app's web page, one of `ports`'s `host`: where Open goes, and what's announced on the LAN (optional) |
 | `web_tls` | `true` if that page is HTTPS, with the app's own certificate: Open and the LAN announcement use `https` (optional; format 2) |
@@ -87,18 +87,27 @@ Ports under 1024, and 3000 (Amahi-kai's own page), are refused by the manifests'
 | 51413 | Transmission | peers (TCP and UDP) |
 <!-- /ports -->
 
+## Logos
+
+An app's logo is `logos/<id>.png` (or `.jpg`, `.webp`, `.svg`), 256 KB at most. It's part of each
+signed version, so a NAS gets it with the manifests, checked by the same signature, and serves it
+itself (Amahi-kai 1.8.5 and later). The logos of Gitea, Jellyfin, PiGallery2, Transmission, Uptime
+Kuma and Vaultwarden are from [dashboard-icons](https://github.com/homarr-labs/dashboard-icons),
+under the Apache License 2.0 ([`logos/LICENSE-dashboard-icons`](logos/LICENSE-dashboard-icons));
+each is its project's trademark.
+
 ## Adding an app
 
-1. Add `apps/<id>.yml` (and its logo in `logos/`, if it's this repo's own), with host ports no
-   other app asks for, and add them to the Ports table (`script/ports` prints it).
+1. Add `apps/<id>.yml` and its logo, `logos/<id>.png` (or `.jpg`, `.webp`, `.svg`), with host
+   ports no other app asks for, and add them to the Ports table (`script/ports` prints it).
 2. Check it as a server will, from a checkout of Amahi-kai beside this one:
 
    ```bash
    ruby --disable-gems ../Amahi-kai/libexec/amahi-helper --check-catalog apps
    ```
 
-3. Open a pull request (pull requests come from collaborators: see [CONTRIBUTING.md](CONTRIBUTING.md)). Its CI runs that same check, checks the logos linked from here, and that every logo
-   stands out on the dark cards.
+3. Open a pull request (pull requests come from collaborators: see [CONTRIBUTING.md](CONTRIBUTING.md)). Its CI runs that same check, checks that every app has its logo, a picture
+   of its type, and that every logo stands out on the dark cards.
    What a reviewer looks for besides: the image comes from the app's own project (or a
    well-known packager), it's pinned to a release, not `latest`, it runs as an ordinary user
    where it can, and it was tried the way a server runs it (see the guide).
@@ -108,7 +117,14 @@ Once it's merged and in a [signed version](#signed-versions), every server lists
 
 ## Updating an app
 
-From an Amahi-kai checkout beside this one:
+A new version of an app needs nothing here. A NAS on Amahi-kai 1.8.5 or later checks each
+installed app's image every 6 hours for a newer tag of the same shape as its manifest's, and a
+newer build of the tag it runs, and offers it (a new major version with a word to read what's new
+first); nothing updates by itself. What a manifest is signed for is what the app may do: its
+image's repository, ports, folders, settings and what it reaches. Change it when those change.
+
+Older NASes offer only the version a manifest names, and a new install starts from it, so raising
+it now and then still helps. From an Amahi-kai checkout beside this one:
 
 ```bash
 script/app-versions --catalog ../amahi-kai-apps/apps
@@ -119,8 +135,8 @@ script/app-versions --catalog ../amahi-kai-apps/apps --update gitea
 ```
 
 The first lists newer versions with their release notes; the second writes the newest tag and
-digest into `apps/gitea.yml`. Read the notes, then open a pull request here. Servers offer the
-update once it's in a [signed version](#signed-versions).
+digest into `apps/gitea.yml`. Read the notes, then open a pull request here. Older servers offer
+the update once it's in a [signed version](#signed-versions).
 
 ## Signed versions
 

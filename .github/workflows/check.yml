@@ -1,7 +1,7 @@
 # Runs Amahi-kai's own checks on the catalog (the root helper's --check-catalog, what a NAS runs
 # before using a manifest), that no two apps ask for the same port and the README lists them
-# (script/ports), that logos linked from this repo exist, and that every logo stands out on
-# Amahi-kai's dark cards (script/check-logos).
+# (script/ports), that every logo in logos/ is a picture of its type, and that every app has one
+# that stands out on Amahi-kai's dark cards (script/check-logos).
 name: Check
 
 on:
@@ -31,17 +31,27 @@ jobs:
           missing=0
           for f in apps/*.yml; do grep -q '^sign_in: ' "$f" || { echo "$f has no sign_in"; missing=1; }; done
           exit $missing
-      - name: Logos linked from this repo exist
+      - name: Every logo in logos/ is an app's, a picture of its type, 256 KB at most
+        # (Amahi-kai 1.8.5 and later check each the same way, by its bytes, when they fetch it.)
         run: |
-          prefix='https://cdn.jsdelivr.net/gh/CatDogBark/amahi-kai-apps@main/'
-          missing=0
-          for logo in $(grep -h "^logo: ${prefix}" apps/*.yml | sed "s|^logo: ${prefix}||"); do
-            [ -f "$logo" ] || { echo "missing: $logo"; missing=1; }
+          bad=0
+          for logo in logos/*; do
+            name=$(basename "$logo")
+            case "$name" in LICENSE*|README*) continue ;; esac
+            id=${name%.*}
+            type=${name##*.}
+            [ -f "apps/$id.yml" ] || { echo "$logo: there's no app called $id"; bad=1; }
+            [ "$(stat -c %s "$logo")" -le 262144 ] || { echo "$logo is over 256 KB"; bad=1; }
+            mime=$(file --brief --mime-type "$logo")
+            case "$type:$mime" in
+              png:image/png|jpg:image/jpeg|webp:image/webp|svg:image/svg+xml) ;;
+              *) echo "$logo is $mime, not a .$type picture (png, jpg, webp or svg)"; bad=1 ;;
+            esac
           done
-          exit $missing
+          exit $bad
       - name: No two apps ask for the same port, and the README's Ports table lists them
         run: ruby script/ports --check README.md
-      - name: Logos stand out on Amahi-kai's dark cards
+      - name: Every app has one logo, and it stands out on Amahi-kai's dark cards
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends imagemagick librsvg2-bin > /dev/null
