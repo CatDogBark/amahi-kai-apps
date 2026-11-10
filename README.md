@@ -49,7 +49,7 @@ environment:
 | `sign_in` | How to sign in the first time, one sentence, shown under the installed app on the Apps page and when its install finishes: who to sign in as and with what ("the password Amahi-kai made for it", for a generated one), or what its first page asks for. Every app here has one (this repo's CI checks); older Amahi-kai versions don't show it |
 | `logo` | An `https` link, for Amahi-kai before 1.8.5 (optional). From 1.8.5 a NAS shows the app's logo from **`logos/<id>.png`** (or `.jpg`, `.webp`, `.svg`; 256 KB at most), which comes with the signed version: it never loads a logo from a link. Every app has one (this repo's CI checks). It must stand out on Amahi-kai's dark cards: at least half of it at 3:1 contrast with the card, which this repo's CI measures (`script/check-logos apps/*.yml`). For a logo made for light pages, use its icon set's light version (dashboard-icons names some `-light`, others `-dark`) |
 | `releases` | The release notes for a version, `{version}` being the tag's leading number (`2.5.5` for `2.5.5-rootless`): the Apps page's What's new link (optional, `https`) |
-| `image` | `name:tag@sha256:digest`: the exact image, pinned, on Docker Hub or `ghcr.io`, public |
+| `image` | `name:tag@sha256:digest`: the image, pinned, on Docker Hub or `ghcr.io`, public. It's the version a new install starts from; Amahi-kai 1.8.5 and later also offer newer releases of the same image, a tag of the same shape (`1.27.3-rootless` finds `28.3.0-rootless`, not `nightly-rootless`), and newer builds of the one an app runs ([Updating an app](#updating-an-app)) |
 | `run_as` | `app`: the container runs as the app's own user (`--user`). `image`: it starts as root and switches to the app's user itself (linuxserver.io images, given `PUID`/`PGID`) |
 | `web_port` | The host port of the app's web page, one of `ports`'s `host`: where Open goes, and what's announced on the LAN (optional) |
 | `web_tls` | `true` if that page is HTTPS, with the app's own certificate: Open and the LAN announcement use `https` (optional; format 2) |
@@ -117,7 +117,14 @@ Once it's merged and in a [signed version](#signed-versions), every server lists
 
 ## Updating an app
 
-From an Amahi-kai checkout beside this one:
+A new version of an app needs nothing here. A NAS on Amahi-kai 1.8.5 or later checks each
+installed app's image every 6 hours for a newer tag of the same shape as its manifest's, and a
+newer build of the tag it runs, and offers it (a new major version with a word to read what's new
+first); nothing updates by itself. What a manifest is signed for is what the app may do: its
+image's repository, ports, folders, settings and what it reaches. Change it when those change.
+
+Older NASes offer only the version a manifest names, and a new install starts from it, so raising
+it now and then still helps. From an Amahi-kai checkout beside this one:
 
 ```bash
 script/app-versions --catalog ../amahi-kai-apps/apps
@@ -128,8 +135,8 @@ script/app-versions --catalog ../amahi-kai-apps/apps --update gitea
 ```
 
 The first lists newer versions with their release notes; the second writes the newest tag and
-digest into `apps/gitea.yml`. Read the notes, then open a pull request here. Servers offer the
-update once it's in a [signed version](#signed-versions).
+digest into `apps/gitea.yml`. Read the notes, then open a pull request here. Older servers offer
+the update once it's in a [signed version](#signed-versions).
 
 ## Signed versions
 
